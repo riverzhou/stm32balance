@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <math.h>
-#include "MPU6050.h"
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h"
+#include "dmpKey.h"
+#include "dmpmap.h"
 #include "ioi2c.h"
+#include "MPU6050.h"
 
-#define DEFAULT_MPU_HZ  (200)
+#define DEFAULT_MPU_HZ  200
 #define q30  						1073741824.0f
-
-short gyro[3], accel[3], sensors;
-float Pitch,Roll; 
 
 //=============================================================
 
@@ -166,8 +167,9 @@ void MPU6050_setI2CBypassEnabled(uint8_t enabled) {
 *功　　能:	    初始化 	MPU6050 以进入可用状态。
 *******************************************************************************/
 void MPU6050_initialize(void) {
-	MPU6050_setClockSource(MPU6050_CLOCK_PLL_YGYRO); //设置时钟
-  MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_250);//陀螺仪最大量程 +-1000度每秒
+	MPU6050_setClockSource(MPU6050_CLOCK_PLL_YGYRO);    //设置时钟
+  //MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_250); //陀螺仪最大量程 +-125度每秒
+	MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_2000);//陀螺仪最大量程 +-1000度每秒
   MPU6050_setFullScaleAccelRange(MPU6050_ACCEL_FS_2);	//加速度度最大量程 +-2G
   MPU6050_setSleepEnabled(0); //进入工作状态
 	MPU6050_setI2CMasterModeEnabled(0);	 //不让MPU6050 控制AUXI2C
@@ -184,7 +186,7 @@ void DMP_Init(void)
 { 
 	MPU6050_initialize();
 	u8 temp[1]={0};
-  i2cRead(0x68,0x75,1,temp);
+  i2c_read(0x68,0x75,1,temp);
 	printf("MPU6050_initialize complete ......\r\n");
 	if(temp[0]!=0x68)
 		NVIC_SystemReset();
@@ -218,23 +220,37 @@ void DMP_Init(void)
 返回  值：无
 作    者：平衡小车之家
 **************************************************************************/
-void Read_DMP(void)
+int Read_DMP(float* Pitch, float* Gyro_Y, float* Gyro_Z)
 {	
-	unsigned long sensor_timestamp;
-	unsigned char more;
-	long quat[4];
+	unsigned long sensor_timestamp = 0;
+	unsigned char more = 0;
+	long  quat[4];
+	short gyro[3], accel[3], sensors;
+	
 	float q0=0.0f,q1=0.0f,q2=0.0f,q3=0.0f;
+	int 	dmp_ret = 0;
 	
-	dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);		
-	
-	if (sensors & INV_WXYZ_QUAT ){
+	//do{
+		dmp_ret = dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);
+	//}while(!more);
+	if(dmp_ret)
+		return -1;
+		
+	if ((sensors & INV_WXYZ_QUAT) &&
+			(sensors& INV_XYZ_GYRO) &&
+			(sensors & INV_XYZ_ACCEL)){
 		q0=quat[0] / q30;
 		q1=quat[1] / q30;
 		q2=quat[2] / q30;
 		q3=quat[3] / q30;
-		Pitch = asin(-2 * q1 * q3 + 2 * q0* q2)* 57.3; 	
-		Roll  = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2* q2 + 1)* 57.3; // roll
+		*Pitch = asin(-2 * q1 * q3 + 2 * q0 * q2)* 57.3; 	
+		//*Roll  = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1)* 57.3;
+		//*Yaw 	 = atan2(2 * q1 * q2 + 2 * q0 * q3, -2 * q2 * q2 - 2 * q3 * q3 + 1)* 57.3; 
+		*Gyro_Y  = (float)gyro[1];
+		*Gyro_Z  = (float)gyro[2];
+		return 0;
 	}
+	return -1;
 }
 
 /**************************************************************************
@@ -243,12 +259,13 @@ void Read_DMP(void)
 返回  值：摄氏温度
 作    者：平衡小车之家
 **************************************************************************/
-int Read_Temperature(void)
+int Read_Temperature(int* T)
 {	   
 	float Temp;
 	Temp=(I2C_ReadOneByte(devAddr,MPU6050_RA_TEMP_OUT_H)<<8)+I2C_ReadOneByte(devAddr,MPU6050_RA_TEMP_OUT_L);
 	if(Temp>32768) Temp-=65536;
 	Temp=(36.53+Temp/340)*10;
-	return (int)Temp;
+	*T = (int)Temp;
+	return *T;
 }
 //------------------End of File----------------------------

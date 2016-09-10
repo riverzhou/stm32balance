@@ -473,6 +473,11 @@
               <FileType>1</FileType>
               <FilePath>.\SYSTEM\exti.c</FilePath>
             </File>
+            <File>
+              <FileName>sys.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\SYSTEM\sys.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -492,6 +497,16 @@
               <FileName>MPU6050.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HARDWARE\MPU6050.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HARDWARE\motor.c</FilePath>
+            </File>
+            <File>
+              <FileName>encoder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HARDWARE\encoder.c</FilePath>
             </File>
           </Files>
         </Group>

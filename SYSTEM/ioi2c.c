@@ -124,10 +124,10 @@ void IIC_Send_Byte(u8 txd)
 } 	 
   
 /**************************实现函数********************************************
-*函数原型:		bool i2cWrite(uint8_t addr, uint8_t reg, uint8_t data)
+*函数原型:		int i2c_write(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
 *功　　能:		
 *******************************************************************************/
-int i2cWrite(unsigned char addr, unsigned char reg, unsigned char len, unsigned char *data)
+int i2c_write(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *data)
 {
 	int i;
   if (!IIC_Start())
@@ -150,10 +150,10 @@ int i2cWrite(unsigned char addr, unsigned char reg, unsigned char len, unsigned 
   return 0;
 }
 /**************************实现函数********************************************
-*函数原型:		bool i2cWrite(uint8_t addr, uint8_t reg, uint8_t data)
+*函数原型:		int i2c_read(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 *功　　能:		
 *******************************************************************************/
-int i2cRead(unsigned char addr, unsigned char reg, unsigned char len, unsigned char *buf)
+int i2c_read(uint8_t addr, uint8_t reg, uint8_t len, uint8_t *buf)
 {
   if (!IIC_Start())
 		return 1;

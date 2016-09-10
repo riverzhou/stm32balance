@@ -1,10 +1,6 @@
 #ifndef __MPU6050_H
 #define __MPU6050_H
 
-#include "inv_mpu.h"
-#include "inv_mpu_dmp_motion_driver.h"
-#include "dmpKey.h"
-#include "dmpmap.h"
 #include "stm32_mpu6050.h"
 
 #define devAddr  0xD0
@@ -359,12 +355,9 @@
 #define MPU6050_WHO_AM_I_BIT        6
 #define MPU6050_WHO_AM_I_LENGTH     6
 
-extern short gyro[3], accel[3];
-extern float Pitch,Roll; 
-
 //供外部调用的API
 void DMP_Init(void);
-void Read_DMP(void);
-int  Read_Temperature(void);
+int  Read_DMP(float* Pitch, float* Gyro_Y, float* Gyro_Z);
+int  Read_Temperature(int* T);
 
 #endif

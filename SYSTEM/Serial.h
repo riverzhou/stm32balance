@@ -18,8 +18,8 @@
 #include "stm32f10x.h"
 
 extern void SER_Init(u32 pclk2, u32 bound);
-extern int  SER_GetChar   (void);
-extern int  SER_PutChar   (int c);
+extern int  SER_GetChar(void);
+extern int  SER_PutChar(int c);
 extern int 	SER_Get(unsigned char *data);
-extern void SER_Put  (unsigned char c);
+extern void SER_Put(unsigned char c);
 #endif
