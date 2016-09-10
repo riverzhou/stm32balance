@@ -95,7 +95,6 @@ int EXTI9_5_IRQHandler(void)
 		Encoder_Right = Read_Encoder(4);                                    //===读取编码器的值
 		Balance_Pwm   = balance(Bal_Angle, Bal_Gyro);                				//===平衡PID控制	
 		Velocity_Pwm  = velocity(Encoder_Left, Encoder_Right);              //===速度环PID控制	 记住，速度反馈是正反馈，就是小车快的时候要慢下来就需要再跑快一点
-		//Velocity_Pwm  = 0;
 		Motor1 = Balance_Pwm - Velocity_Pwm;                                //===计算左轮电机最终PWM
 		Motor2 = Balance_Pwm - Velocity_Pwm;                                //===计算右轮电机最终PWM
 

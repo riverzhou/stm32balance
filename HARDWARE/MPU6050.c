@@ -167,13 +167,13 @@ void MPU6050_setI2CBypassEnabled(uint8_t enabled) {
 *功　　能:	    初始化 	MPU6050 以进入可用状态。
 *******************************************************************************/
 void MPU6050_initialize(void) {
-	MPU6050_setClockSource(MPU6050_CLOCK_PLL_YGYRO);    //设置时钟
-  //MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_250); //陀螺仪最大量程 +-125度每秒
-	MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_2000);//陀螺仪最大量程 +-1000度每秒
-  MPU6050_setFullScaleAccelRange(MPU6050_ACCEL_FS_2);	//加速度度最大量程 +-2G
-  MPU6050_setSleepEnabled(0); //进入工作状态
-	MPU6050_setI2CMasterModeEnabled(0);	 //不让MPU6050 控制AUXI2C
-	MPU6050_setI2CBypassEnabled(0);	 //主控制器的I2C与	MPU6050的AUXI2C	直通。控制器可以直接访问HMC5883L
+	MPU6050_setClockSource(MPU6050_CLOCK_PLL_YGYRO);    		//设置时钟
+  MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_250); 		//陀螺仪最大量程 +-250度每秒
+	//MPU6050_setFullScaleGyroRange(MPU6050_GYRO_FS_2000);	//陀螺仪最大量程 +-2000度每秒
+  MPU6050_setFullScaleAccelRange(MPU6050_ACCEL_FS_2);			//加速度度最大量程 +-2G
+  MPU6050_setSleepEnabled(0); 														//进入工作状态
+	MPU6050_setI2CMasterModeEnabled(0);	 										//不让MPU6050 控制AUXI2C
+	MPU6050_setI2CBypassEnabled(0);	 												//主控制器的I2C与	MPU6050的AUXI2C	直通。控制器可以直接访问HMC5883L
 }
 
 /**************************************************************************
@@ -230,27 +230,25 @@ int Read_DMP(float* Pitch, float* Gyro_Y, float* Gyro_Z)
 	float q0=0.0f,q1=0.0f,q2=0.0f,q3=0.0f;
 	int 	dmp_ret = 0;
 	
-	//do{
+	do{
 		dmp_ret = dmp_read_fifo(gyro, accel, quat, &sensor_timestamp, &sensors, &more);
-	//}while(!more);
+	}while(more);
+	//printf("sensors %u , more %u \r\n", sensors, more);
 	if(dmp_ret)
 		return -1;
-		
-	if ((sensors & INV_WXYZ_QUAT) &&
-			(sensors& INV_XYZ_GYRO) &&
-			(sensors & INV_XYZ_ACCEL)){
-		q0=quat[0] / q30;
-		q1=quat[1] / q30;
-		q2=quat[2] / q30;
-		q3=quat[3] / q30;
-		*Pitch = asin(-2 * q1 * q3 + 2 * q0 * q2)* 57.3; 	
-		//*Roll  = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1)* 57.3;
-		//*Yaw 	 = atan2(2 * q1 * q2 + 2 * q0 * q3, -2 * q2 * q2 - 2 * q3 * q3 + 1)* 57.3; 
-		*Gyro_Y  = (float)gyro[1];
-		*Gyro_Z  = (float)gyro[2];
-		return 0;
-	}
-	return -1;
+	if(!((sensors & INV_WXYZ_QUAT) && (sensors& INV_XYZ_GYRO) && (sensors & INV_XYZ_ACCEL)))
+		return -1;
+
+	q0=quat[0] / q30;
+	q1=quat[1] / q30;
+	q2=quat[2] / q30;
+	q3=quat[3] / q30;
+	*Pitch = asin(-2 * q1 * q3 + 2 * q0 * q2)* 57.3;
+	//*Roll  = atan2(2 * q2 * q3 + 2 * q0 * q1, -2 * q1 * q1 - 2 * q2 * q2 + 1)* 57.3;
+	//*Yaw 	 = atan2(2 * q1 * q2 + 2 * q0 * q3, -2 * q2 * q2 - 2 * q3 * q3 + 1)* 57.3;
+	*Gyro_Y  = (float)gyro[1];
+	*Gyro_Z  = (float)gyro[2];
+	return 0;
 }
 
 /**************************************************************************
