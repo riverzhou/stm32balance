@@ -6,11 +6,13 @@
 #include "MPU6050.h"
 #include "motor.h"
 #include "encoder.h"
+#include "battery.h"
 
 int main(void)
 {
 	delay_init(72);                 //=====延时初始化
 	SER_Init(72, 115200);						//=====初始化串口1
+	Battery_Init();
   Motor_Init(7199,0);   					//=====初始化PWM 10KHZ，用于驱动电机 如需初始化电调接口 改为Motor_Init(9999,35) 200HZ
 	Encoder_Init();            			//=====编码器接口
 	IIC_Init();                     //=====模拟IIC初始化

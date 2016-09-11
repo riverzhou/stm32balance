@@ -2,6 +2,9 @@
 #include "motor.h"
 #include "ioi2c.h"
 
+#define MAX_ANGEL			40				// 40度
+#define MIN_VOLTAGE		1110			// 11.1V
+
 #define PWMA   TIM1->CCR1  //PA8
 #define PWMB   TIM1->CCR4  //PA11
 
@@ -65,11 +68,11 @@ void Set_Pwm(int moto1,int moto2)
 入口参数：倾角和电压
 返回  值：1：异常  0：正常
 **************************************************************************/
-int Turn_Off(float angle)
+int Turn_Off(float angle, int voltage)
 {
-	if(angle<-40||angle>40)
-	{	                                                 //===倾角大于40度关闭电机
-		AIN1=0;                                            //===可自行增加主板温度过高时关闭电机
+	if(angle < -MAX_ANGEL || angle > MAX_ANGEL || voltage < MIN_VOLTAGE)
+	{	                                                 //===倾角大于40度关闭电机，或者电压低于11.1V
+		AIN1=0;                                          //===可自行增加主板温度过高时关闭电机
 		AIN2=0;
 		BIN1=0;
 		BIN2=0;

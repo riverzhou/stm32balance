@@ -4,6 +4,6 @@
 
 void Motor_Init(u16 arr,u16 psc);
 void Set_Pwm(int moto1,int moto2);
-int  Turn_Off(float angle);
+int  Turn_Off(float angle, int voltage);
 	
 #endif

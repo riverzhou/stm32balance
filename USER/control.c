@@ -3,18 +3,17 @@
 #include "MPU6050.h"
 #include "encoder.h"
 #include "motor.h"
+#include "battery.h"
 
 #define BAL_ANGEL 	0
 #define BAL_KP			300
-//#define BAL_KD			(-1)
 #define BAL_KD			1
 
 #define VEL_KP			80
 #define VEL_KI			0.4
 
-#define ENC_FILTE1 	0.8
-#define ENC_FILTE2 	0.2
-
+#define ENC_FILTE1 	0.9
+#define ENC_FILTE2 	0.1
 
 /**************************************************************************
 函数功能：获取平衡角度和平衡角速度和转向角速度
@@ -58,14 +57,14 @@ int velocity(int encoder_left,int encoder_right)
 {  
 	static float Encoder_Least=0.0f, Encoder=0.0f, Movement=0.0f, Encoder_Integral=0.0f;
 	//=============速度PI控制器=======================//	
-	Encoder_Least = (encoder_left + encoder_right) - 0;               //===获取最新速度偏差==测量速度（左右编码器之和）-目标速度（此处为零） 
-	Encoder *= ENC_FILTE1;		                                        //===一阶低通滤波器       
-	Encoder += Encoder_Least * ENC_FILTE2;	                          //===一阶低通滤波器    
-	Encoder_Integral += Encoder;                                      //===积分出位移 积分时间：10ms
-	Encoder_Integral = Encoder_Integral - Movement;                   //===接收遥控器数据，控制前进后退
-	if(Encoder_Integral>10000)  Encoder_Integral = 10000;            	//===积分限幅
-	if(Encoder_Integral<-10000)	Encoder_Integral = -10000;            //===积分限幅	
-	return Encoder * VEL_KP + Encoder_Integral * VEL_KI;              //===速度控制	
+	Encoder_Least = (encoder_left + encoder_right) - 0;               		//===获取最新速度偏差==测量速度（左右编码器之和）-目标速度（此处为零） 
+	Encoder *= ENC_FILTE1;		                                        		//===一阶低通滤波器       
+	Encoder += Encoder_Least * ENC_FILTE2;	                          		//===一阶低通滤波器    
+	Encoder_Integral += Encoder;                                      		//===积分出位移 积分时间：10ms
+	Encoder_Integral = Encoder_Integral - Movement;                   		//===接收遥控器数据，控制前进后退
+	if(Encoder_Integral>10000)  Encoder_Integral = 10000;            			//===积分限幅
+	if(Encoder_Integral<-10000)	Encoder_Integral = -10000;            		//===积分限幅	
+	return Encoder * VEL_KP + Encoder_Integral * VEL_KI;              		//===速度控制	
 }
 
 /**************************************************************************
@@ -87,6 +86,9 @@ int EXTI9_5_IRQHandler(void)
 		if(Flag_Target==1)                                                  //5ms读取一次陀螺仪和加速度计的值，更高的采样频率可以改善卡尔曼滤波和互补滤波的效果
 			return 0;	                                               
 		
+		int Voltage=0;
+		Voltage=Get_battery_volt();
+		
 		int Balance_Pwm=0, Velocity_Pwm=0;
 		int Motor1=0, Motor2=0;
 		int Encoder_Left=0, Encoder_Right=0;             										//左右编码器的脉冲计数
@@ -98,7 +100,7 @@ int EXTI9_5_IRQHandler(void)
 		Motor1 = Balance_Pwm - Velocity_Pwm;                                //===计算左轮电机最终PWM
 		Motor2 = Balance_Pwm - Velocity_Pwm;                                //===计算右轮电机最终PWM
 
-		if(!Turn_Off(Bal_Angle))                   					                //===检测倾角是否在许可范围内
+		if(!Turn_Off(Bal_Angle,Voltage))                   					        //===检测倾角是否在许可范围内
 			Set_Pwm(Motor1, Motor2);                                          //===赋值给PWM寄存器  
 
 		//printf("Bal_Angle %f , Bal_Gyro %f , Motor1 %d , Motor2 %d \r\n", Bal_Angle, Bal_Gyro, Motor1, Motor2);
